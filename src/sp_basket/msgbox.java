@@ -12,13 +12,10 @@ public class msgbox extends JFrame implements ActionListener{
 	private static msgbox msgins = null;
 	JButton check = null;
 
-	msgbox() {
+	public msgbox() {
 	}
 
 	public static msgbox getins() {
-		if (msgins == null) {
-			msgins = new msgbox();
-		}
 		return msgins;
 	}
 	

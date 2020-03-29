@@ -61,6 +61,7 @@ public class DAO {
 						ctDB.setPrice(Integer.toString(rs.getInt("OBPRICE")));
 						int sumB = rs.getInt("OBPRICE");
 						ctDB.setSum(Integer.toString(sumA * sumB));
+						ctDB.setOdn(rs.getString("cart_no"));
 						dList.add(ctDB.getArray());
 					}
 				}
@@ -77,7 +78,7 @@ public class DAO {
 	public boolean Insert(DTO_Cart ADR) {
 		boolean result = false;
 		if (link()) {
-			String sql = "insert into cart values(?,?,?,?,?)";
+			String sql = "insert into cart values(?,?,?,?,?,cart_no.nextval)";
 			try {
 				PreparedStatement ppst = con.prepareStatement(sql);
 				ppst.setString(1, ADR.getmID());
@@ -99,9 +100,9 @@ public class DAO {
 		return result;
 	}
 
-	public int deltoOracle(String delID) {
+	public int deltoOracle(String odn) {
 		if (link()) {
-			String sql = "delete from cart where mid='" + delID + "'";
+			String sql = "delete from cart where cart_no=" + odn;
 			try {
 				st = con.createStatement();
 				int k = st.executeUpdate(sql);
@@ -116,9 +117,10 @@ public class DAO {
 		return 0;
 	}
 
-	public int update(ArrayList<String> Attribute, ArrayList<String> Valuse) {
+	public int update(ArrayList<String> Attribute, ArrayList<String> Valuse, String orderNumber) {
 		if (link()) {
-			String sql = "update cart set " + Attribute.get(0) + "='" + Valuse.get(0)+"'";
+			String sql = "update cart set " + Attribute.get(0) + "='" + Valuse.get(0) + "'" + "where cart_no="
+					+ orderNumber;
 			try {
 				st = con.createStatement();
 				int k = st.executeUpdate(sql);
@@ -136,8 +138,8 @@ public class DAO {
 		if (link()) {
 			try {
 				PreparedStatement pps = con.prepareStatement(sql);
-				pps.setString(1, x);
-				
+//				pps.setString(1, x);
+
 				if (st != null) {
 					rs = st.executeQuery(sql);
 					while (rs.next()) {
@@ -160,6 +162,6 @@ public class DAO {
 			System.out.println("DB연결 실패");
 			System.exit(0);
 		}
-		return dList;
+		return odList;
 	}
 }

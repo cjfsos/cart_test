@@ -7,7 +7,14 @@ public class DTO_Cart {
 	private String ea; 
 	private String price;
 	private String sum;
+	private String odn;
 	
+	public String getOdn() {
+		return odn;
+	}
+	public void setOdn(String odn) {
+		this.odn = odn;
+	}
 	public String getmID() {
 		return mID;
 	}
@@ -43,13 +50,14 @@ public class DTO_Cart {
 	}	
 	
 	public String[] getArray() {
-		String[] returnData = new String[6];
-		returnData[0]=this.mID;
-		returnData[1]=this.mName;
-		returnData[2]=this.obName;
-		returnData[3]=this.ea;		
-		returnData[4]=this.price;
-		returnData[5]=this.sum;
+		String[] returnData = new String[7];
+		returnData[0]=this.odn;
+		returnData[1]=this.mID;
+		returnData[2]=this.mName;
+		returnData[3]=this.obName;
+		returnData[4]=this.ea;		
+		returnData[5]=this.price;
+		returnData[6]=this.sum;
 		
 		return returnData;
 	}

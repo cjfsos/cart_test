@@ -25,7 +25,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
 public class Main extends JFrame implements ActionListener {
-	String header[] = { "회원ID", "회원이름", "상품이름", "상품수량", "상품단가", "합계" };
+	String header[] = { "주문번호", "회원ID", "회원이름", "상품이름", "상품수량", "상품단가", "합계" };
 	String contents[][];
 	JPanel np = new JPanel();// 테이블 패널
 	JPanel cp = new JPanel();// 텍스트필드 패널
@@ -41,7 +41,6 @@ public class Main extends JFrame implements ActionListener {
 	JScrollPane tableScroll = new JScrollPane(table);
 	DAO daoIns = DAO.getInstance();
 	ArrayList<String[]> DTList = new ArrayList<>();// 한행 한행의 Sring[]배열저장
-	msgbox msgins = msgbox.getins();
 	JLabel sum;
 	JButton buy;
 	String originData[] = new String[5];
@@ -59,6 +58,7 @@ public class Main extends JFrame implements ActionListener {
 		this.add(tableScroll, "Center");
 		this.add(sp, "South");
 		this.setVisible(true);
+		msgbox msgins = new msgbox();
 		this.setDefaultCloseOperation(this.DISPOSE_ON_CLOSE);
 	}
 
@@ -81,10 +81,11 @@ public class Main extends JFrame implements ActionListener {
 			@Override // 원래 액션 리스너에는 팝업 버튼 클릭시 이벤트 감지를 못함
 			public void actionPerformed(ActionEvent e) {
 				if (table.getSelectedRow() == -1) {
+					msgbox msgins = new msgbox();
 					msgins.Moderorrmsg();
 				} else {
 					for (int i = 0; i < menu.length; i++) {// 수정조건1 행을 클릭했을때
-						menu[i].setText((String) table.getValueAt(table.getSelectedRow(), i));// 행의 값을 Textfield로 가져옴
+						menu[i].setText((String) table.getValueAt(table.getSelectedRow(), i + 1));// 행의 값을 Textfield로 가져옴
 						originData[i] = menu[i].getText();// 가져온 행의 값을 originData배열에 넣어놓음 why?수정할 값과 비교해야하니까!
 					}
 				}
@@ -137,7 +138,7 @@ public class Main extends JFrame implements ActionListener {
 
 	private void cpSet() {
 		DTList = daoIns.getContents();
-		for (int i = 0; i < DTList.size(); i++) {//오라클에서 data를 가져옴
+		for (int i = 0; i < DTList.size(); i++) {// 오라클에서 data를 가져옴
 			DTList = daoIns.getContents();
 			tableModel.addRow(DTList.get(i));
 		}
@@ -148,7 +149,7 @@ public class Main extends JFrame implements ActionListener {
 		DefaultTableCellRenderer ts = new DefaultTableCellRenderer();
 		ts.setHorizontalAlignment(SwingConstants.RIGHT);
 		TableColumnModel tc = table.getColumnModel();
-		for (int i = 0; i < tc.getColumnCount(); i++) {//오른쪽정렬
+		for (int i = 0; i < tc.getColumnCount(); i++) {// 오른쪽정렬
 			tc.getColumn(i).setCellRenderer(ts);
 		}
 	}
@@ -173,18 +174,22 @@ public class Main extends JFrame implements ActionListener {
 				tableModel.addRow(in);
 				saveToDB(in);
 			} else {
+				msgbox msgins = new msgbox();
 				msgins.erorrmsg();
 			}
 		}
 
 		if (act.equals(del)) {
 			if (table.getSelectedRow() == -1) {
+				msgbox msgins = new msgbox();
 				msgins.rowerorrmsg();
 			} else {
-				String delID = tableModel.getValueAt(table.getSelectedRow(), 0).toString();
-				if (daoIns.deltoOracle(delID) == 1) {// Oracle에서 삭제
+				String odn = tableModel.getValueAt(table.getSelectedRow(), 0).toString();
+				if (daoIns.deltoOracle(odn) == 1) {// Oracle에서 삭제
+					msgbox msgins = new msgbox();
 					msgins.suessmsg();
 				} else {
+					msgbox msgins = new msgbox();
 					msgins.fail();
 				}
 				;
@@ -194,30 +199,41 @@ public class Main extends JFrame implements ActionListener {
 
 		if (act.equals(mod)) {
 			if (table.getSelectedRow() == -1) {// 행을 미선택시erorr
+				msgbox msgins = new msgbox();
 				msgins.Moderorrmsg();
 			} else if (table.getSelectedRow() != -1 && blankCheck()) {// 수정조건2 해당 텍스트에 값이 전부 있을것
-
+				int selRow = table.getSelectedRow();
 				if (modCheck1()) {// 수정조건3 originData데이터에 값 가져오기로 가져온 기존 값이 있을것
 					if (modCheck2()) {// 수정조건4 기존의 있던 textfield와 수정된 textfield값이 서로 다를것!
-						int check = daoIns.update(findAttribute(), findValuse());// 수정조건 5 수정할 Attribute와 Valuse찾기
+						String orderN = (String) table.getValueAt(selRow, 0);
+						int check = daoIns.update(findAttribute(), findValuse(), orderN);// 수정조건 5 수정할 Attribute와 Valuse찾기
 						if (check == 1) {
+							tableModel.removeRow(selRow);
+							msgbox msgins = new msgbox();
 							msgins.modsuccess();
-							// 텍스트필드에 있는 값을 행에 넣기->선생님 참조 할것
+							
+							// 텍스트필드에 있는 값을 행에 넣기-> 해당행으로 가도록 위치 조정 modRow 활용할것 ->오라클에서 해당 조건을 찾아 add부분을
+							// 참고하여 추가
 						} else if (check == 0) {
+							msgbox msgins = new msgbox();
 							msgins.Moderorrmsg5();
 						}
 					} else {
+						msgbox msgins = new msgbox();
 						msgins.Moderorrmsg4();
 					}
 				} else {
+					msgbox msgins = new msgbox();
 					msgins.Moderorrmsg3();
 				}
 			} else if (table.getSelectedRow() != -1) {// 행은 선택했으나 textfield에 값을 가져오지 않았을시 erorr
+				msgbox msgins = new msgbox();
 				msgins.Moderorrmsg2();
 			}
 		}
 		if (act.equals(buy)) {
 			if (table.getSelectedRow() == -1) {
+				msgbox msgins = new msgbox();
 				msgins.Moderorrmsg();
 			} else if (table.getSelectedRow() != -1) {
 				int selRow = table.getSelectedRow();
@@ -225,7 +241,7 @@ public class Main extends JFrame implements ActionListener {
 				String ID = (String) table.getValueAt(selRow, 0);// id
 				String Obname = (String) table.getValueAt(selRow, 2);// 상품이름
 				String sum = (String) table.getValueAt(selRow, 5);// 합계
-				new Order_btn(this,selRow);
+				new Order_btn(this, selRow);
 			}
 		}
 	}
@@ -335,6 +351,7 @@ public class Main extends JFrame implements ActionListener {
 		addDTO.setPrice(in[4]);
 		boolean swich = daoIns.Insert(addDTO);
 		if (swich) {
+			msgbox msgins = new msgbox();
 			msgins.suessmsg();
 		} else {
 			// 에러메시지가 나오게
