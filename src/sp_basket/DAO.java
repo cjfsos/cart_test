@@ -119,8 +119,8 @@ public class DAO {
 
 	public int update(ArrayList<String> Attribute, ArrayList<String> Valuse, String orderNumber) {
 		if (link()) {
-			String sql = "update cart set " + Attribute.get(0) + "='" + Valuse.get(0) + "'" + "where cart_no="
-					+ orderNumber;
+			String sql = "update cart set " + Attribute.get(0) + "='" + Valuse.get(0) +
+					"'" + "where cart_no="	+ orderNumber;
 			try {
 				st = con.createStatement();
 				int k = st.executeUpdate(sql);
@@ -134,12 +134,10 @@ public class DAO {
 
 	public ArrayList<String[]> getOrder(String selID) {
 		ArrayList<String[]> odList = new ArrayList();
-		String sql = "SELECT  FROM CART";
+		String sql = "SELECT * FROM CART WHERE MID='" + selID + "'";
 		if (link()) {
 			try {
-				PreparedStatement pps = con.prepareStatement(sql);
-//				pps.setString(1, x);
-
+				st = con.createStatement();
 				if (st != null) {
 					rs = st.executeQuery(sql);
 					while (rs.next()) {
@@ -151,6 +149,7 @@ public class DAO {
 						int sumA = rs.getInt("OBEA");
 						ctDB.setPrice(Integer.toString(rs.getInt("OBPRICE")));
 						int sumB = rs.getInt("OBPRICE");
+						ctDB.setOdn(rs.getString("cart_no"));
 						ctDB.setSum(Integer.toString(sumA * sumB));
 						odList.add(ctDB.getArray());
 					}

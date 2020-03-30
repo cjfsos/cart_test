@@ -66,10 +66,10 @@ public class Main extends JFrame implements ActionListener {
 		Rclick = new JPopupMenu();
 		Rckmenu = new JMenuItem("data가져오기");
 		Rclick.add(Rckmenu);
-		table.add(Rclick);// 확인 요청 지우고 했을때?
+		table.add(Rclick);
 		table.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent k) {
-				if (k.getButton() == 3) {
+				if (k.getButton() == 3) {// 우클릭 했을시 해당 마우스포인터의 좌표에 JPopupMenu를 보여줌
 					int column = table.columnAtPoint(k.getPoint());
 					int row = table.rowAtPoint(k.getPoint());
 					table.changeSelection(row, column, false, false);
@@ -77,16 +77,18 @@ public class Main extends JFrame implements ActionListener {
 				}
 			}
 		});
-		Rckmenu.addActionListener(new ActionListener() {// 강제로 버튼 처리
-			@Override // 원래 액션 리스너에는 팝업 버튼 클릭시 이벤트 감지를 못함
+		Rckmenu.addActionListener(new ActionListener() {// JPopupMenu에 있는 Rckmenu(data가져오기)를 클릭시
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (table.getSelectedRow() == -1) {
 					msgbox msgins = new msgbox();
 					msgins.Moderorrmsg();
 				} else {
-					for (int i = 0; i < menu.length; i++) {// 수정조건1 행을 클릭했을때
-						menu[i].setText((String) table.getValueAt(table.getSelectedRow(), i + 1));// 행의 값을 Textfield로 가져옴
-						originData[i] = menu[i].getText();// 가져온 행의 값을 originData배열에 넣어놓음 why?수정할 값과 비교해야하니까!
+					for (int i = 0; i < menu.length; i++) {//
+						menu[i].setText((String) table.getValueAt(table.getSelectedRow(), i + 1));
+						// 행의 값을 Textfield로 가져옴
+						originData[i] = menu[i].getText();
+						// 가져온 행의 값을 originData배열에 넣어놓음 why?수정할 값과 비교해야하니까!
 					}
 				}
 			}
@@ -127,7 +129,7 @@ public class Main extends JFrame implements ActionListener {
 		int rowcnt = tableModel.getRowCount();
 		int tSum = 0;
 		for (int i = 0; i < rowcnt; i++) {
-			tSum = tSum + Integer.parseInt(tableModel.getValueAt(i, 5).toString());
+			tSum = tSum + Integer.parseInt(tableModel.getValueAt(i, 6).toString());
 			// 게산을 위해 tableModel.getValueAt(i, 5) 에서 나온 object 타입을 인트로 형변환 시켜줘야함
 			// 그러나 바로 인트 형변환이 되지 않아 스트링으로 형변환 후 다시 인트로 형변환함
 			// 그리고 JTextField에 넣기 위해 다시 스트링으로 변환해줌
@@ -139,7 +141,6 @@ public class Main extends JFrame implements ActionListener {
 	private void cpSet() {
 		DTList = daoIns.getContents();
 		for (int i = 0; i < DTList.size(); i++) {// 오라클에서 data를 가져옴
-			DTList = daoIns.getContents();
 			tableModel.addRow(DTList.get(i));
 		}
 		table.getTableHeader().setReorderingAllowed(false);
@@ -156,23 +157,23 @@ public class Main extends JFrame implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		String in[] = new String[6];
+		String in[] = new String[7];
 		Object act = e.getSource();
 
 		if (act.equals(add)) {// 추가 버튼을 눌렀을시-추가하고싶은건 텍스트 파일이 전부 내용이 있을때만 작동하게 하고싶음
 			if (blankCheck()) {
 				for (int i = 0; i < menu.length; i++) {
-					in[i] = menu[i].getText();
+					in[i + 1] = menu[i].getText();
 				}
 				int a = Integer.parseInt(menu[3].getText());
 				int b = Integer.parseInt(menu[4].getText());
 				int c = a * b;
-				in[5] = Integer.toString(c);
+				in[6] = Integer.toString(c);
 				for (int i = 0; i < menu.length; i++) {
 					menu[i].setText("");
 				}
-				tableModel.addRow(in);
 				saveToDB(in);
+				tableModel.addRow(in);
 			} else {
 				msgbox msgins = new msgbox();
 				msgins.erorrmsg();
@@ -204,16 +205,22 @@ public class Main extends JFrame implements ActionListener {
 			} else if (table.getSelectedRow() != -1 && blankCheck()) {// 수정조건2 해당 텍스트에 값이 전부 있을것
 				int selRow = table.getSelectedRow();
 				if (modCheck1()) {// 수정조건3 originData데이터에 값 가져오기로 가져온 기존 값이 있을것
-					if (modCheck2()) {// 수정조건4 기존의 있던 textfield와 수정된 textfield값이 서로 다를것!
+					if (modCheck2()) {// 수정조건4 기존의 있던 기존행의 data와 수정된 textfield값이 서로 다를것!
 						String orderN = (String) table.getValueAt(selRow, 0);
-						int check = daoIns.update(findAttribute(), findValuse(), orderN);// 수정조건 5 수정할 Attribute와 Valuse찾기
+						int check = daoIns.update(findAttribute(), findValuse(), orderN);
+						// 수정조건 5 수정할 Attribute와 Valuse찾기
 						if (check == 1) {
+							String insertMod[] = new String[7];
+							insertMod[0] = (String) tableModel.getValueAt(selRow, 0);
+							for (int i = 1; i < menu.length; i++) {
+								insertMod[i] = menu[i - 1].getText();
+							}
+							insertMod[5] = (String) tableModel.getValueAt(selRow, 5);
+							insertMod[6] = (String) tableModel.getValueAt(selRow, 6);
 							tableModel.removeRow(selRow);
+							tableModel.insertRow(selRow, insertMod);
 							msgbox msgins = new msgbox();
 							msgins.modsuccess();
-							
-							// 텍스트필드에 있는 값을 행에 넣기-> 해당행으로 가도록 위치 조정 modRow 활용할것 ->오라클에서 해당 조건을 찾아 add부분을
-							// 참고하여 추가
 						} else if (check == 0) {
 							msgbox msgins = new msgbox();
 							msgins.Moderorrmsg5();
@@ -231,17 +238,15 @@ public class Main extends JFrame implements ActionListener {
 				msgins.Moderorrmsg2();
 			}
 		}
+
 		if (act.equals(buy)) {
 			if (table.getSelectedRow() == -1) {
 				msgbox msgins = new msgbox();
 				msgins.Moderorrmsg();
 			} else if (table.getSelectedRow() != -1) {
 				int selRow = table.getSelectedRow();
-				// 선택한 행의 Id/이름/합계 만 나오게
-				String ID = (String) table.getValueAt(selRow, 0);// id
-				String Obname = (String) table.getValueAt(selRow, 2);// 상품이름
-				String sum = (String) table.getValueAt(selRow, 5);// 합계
-				new Order_btn(this, selRow);
+				String ID = (String) table.getValueAt(selRow, 1);// id
+				new Order_btn(this, ID);
 			}
 		}
 	}
@@ -335,7 +340,8 @@ public class Main extends JFrame implements ActionListener {
 	}
 
 	private boolean modCheck1() {
-		if (originData[0] == null && originData[1] == null && originData[2] == null && originData[3] == null
+		if (originData[0] == null && originData[1] == null && originData[2]
+				== null && originData[3] == null
 				&& originData[4] == null) {
 			return false;
 		}
@@ -344,11 +350,11 @@ public class Main extends JFrame implements ActionListener {
 
 	private void saveToDB(String[] in) {
 		DTO_Cart addDTO = new DTO_Cart();
-		addDTO.setmID(in[0]);
-		addDTO.setmName(in[1]);
-		addDTO.setObName(in[2]);
-		addDTO.setEa(in[3]);
-		addDTO.setPrice(in[4]);
+		addDTO.setmID(in[1]);
+		addDTO.setmName(in[2]);
+		addDTO.setObName(in[3]);
+		addDTO.setEa(in[4]);
+		addDTO.setPrice(in[5]);
 		boolean swich = daoIns.Insert(addDTO);
 		if (swich) {
 			msgbox msgins = new msgbox();
